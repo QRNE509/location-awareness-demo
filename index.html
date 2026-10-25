@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>عرض توعوي - خصوصية الموقع</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 650px;
+      margin: 35px auto;
+      padding: 20px;
+      background: #f4f6f8;
+      color: #17202a;
+    }
+    main {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+    }
+    button {
+      padding: 12px 18px;
+      margin: 5px;
+      border: 0;
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #start { background: #176b48; color: white; }
+    #stop { background: #a93226; color: white; }
+    #status { font-weight: bold; }
+    .data {
+      background: #eef2f5;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>تجربة خصوصية الموقع</h1>
+  <p>
+    هذه صفحة توعوية. عند بدء المشاركة، سيطلب المتصفح
+    إذن الوصول إلى موقع هذا الجهاز. لا تُرسل الإحداثيات
+    إلى خادم خارجي.
+  </p>
+
+  <button id="start">أوافق وأبدأ مشاركة موقعي</button>
+  <button id="stop">إيقاف المشاركة</button>
+
+  <p id="status">حالة المشاركة: متوقفة</p>
+
+  <h3>الإحداثيات</h3>
+  <div class="data" id="coords">لم تتم مشاركة الموقع.</div>
+
+  <h3>دقة الموقع</h3>
+  <div class="data" id="accuracy">—</div>
+
+  <h3>آخر تحديث</h3>
+  <div class="data" id="updated">—</div>
+
+  <p>
+    ملاحظة: إيقاف المشاركة هنا يوقف طلب تحديثات الموقع
+    من هذه الصفحة.
+  </p>
+</main>
+
+<script>
+  let watchId = null;
+
+  const status = document.getElementById("status");
+  const coords = document.getElementById("coords");
+  const accuracy = document.getElementById("accuracy");
+  const updated = document.getElementById("updated");
+
+  document.getElementById("start").onclick = () => {
+    if (!navigator.geolocation) {
+      status.textContent = "المتصفح لا يدعم تحديد الموقع.";
+      return;
+    }
+
+    if (watchId !== null) return;
+
+    status.textContent = "بانتظار إذن الموقع...";
+
+    watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const p = position.coords;
+
+        coords.textContent =
+          "خط العرض: " + p.latitude +
+          " | خط الطول: " + p.longitude;
+
+        accuracy.textContent =
+          "ضمن نطاق تقريبي قدره " + p.accuracy + " متر";
+
+        updated.textContent =
+          new Date(position.timestamp).toLocaleTimeString();
+
+        status.textContent = "المشاركة فعّالة على هذا الجهاز.";
+      },
+      (error) => {
+        status.textContent =
+          "تعذّر الحصول على الموقع: " + error.message;
+        watchId = null;
+      },
+      { enableHighAccuracy: true, maximumAge: 0 }
+    );
+  };
+
+  document.getElementById("stop").onclick = () => {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+
+    status.textContent = "حالة المشاركة: متوقفة";
+  };
+</script>
+</body>
+</html>
